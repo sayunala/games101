@@ -39,7 +39,7 @@
     return model;
 ```
 
-> 投影矩阵
+> 投影矩阵，这样得到的矩阵是反向的很奇怪需要得到的是倒三角
 
 ```cpp
 
@@ -58,7 +58,7 @@
         zNear, 0, 0, 0,
         0, zNear, 0, 0,
         0, 0, zNear + zFar, -zNear * zFar,
-        0, 0, 1, 0;
+        0, 0, 1, 0;// 0, 0, -1, 0是正三角 
     Eigen::Matrix4f orthogonalProjection;//正交投影
     orthogonalProjection <<
         2 / (r - l), 0, 0, 0,
