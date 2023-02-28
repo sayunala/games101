@@ -40,7 +40,7 @@ auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
 }
 
 
-static bool insideTriangle(int x, int y, const Vector3f* _v)
+static bool insideTriangle(float x, float y, const Vector3f* _v)
 {   
     // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
     Vector3f ab = _v[1] - _v[0];
@@ -121,6 +121,9 @@ void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf
 
 //Screen space rasterization
 void rst::rasterizer::rasterize_triangle(const Triangle& t) {
+    bool superSampling = true;
+
+    int superSamplingCount = 2;//SuperSampling Count = n^2
     auto v = t.toVector4();
     
     //v[0].x();
@@ -131,22 +134,60 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     float min_y = std::min({ v[0].y(),v[1].y(), v[2].y() });
 
 
-    
+    if(!superSampling)
     for (int x = min_x; x <= max_x; x++) {
-        for (int y = min_y; y < max_y+1; y++) {
-            if (insideTriangle(x, y, t.v)) {
+        for (int y = min_y; y <=max_y; y++) {
+            if (insideTriangle(x + 0.5, y + 0.5, t.v)) {
                 // If so, use the following code to get the interpolated z value.
                 auto[alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
                 float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
                 float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
                 z_interpolated *= w_reciprocal;
 
+                //
                 Eigen::Vector3f point(x, y, 1.0f );
                 int ind = get_index(x, y);
                 if (depth_buf[ind] > z_interpolated) {
                     set_pixel(point, t.getColor());
                     depth_buf[ind] = z_interpolated;
                 }
+
+            }
+        }
+    }
+    else {
+        for (int x = min_x; x <= max_x; x++) {
+            for (int y = min_y; y <= max_y; y++) {
+                //判断超采样点的覆盖率
+                float currentx = x + 0.5 / superSamplingCount;
+                float currenty = y + 0.5 / superSamplingCount;
+                int insideCount = 0;
+                for (int i = 0; i < superSamplingCount; i++) {
+                    float stepx = ((float)i) / superSamplingCount;
+                    //currentx = currentx + stepx;
+                    for (int j = 0; j < superSamplingCount; j++) {
+                       float stepy = ((float)j) / superSamplingCount;
+                       //currenty = currenty + stepy;
+                       if (insideTriangle(currentx + stepx, currenty+stepy, t.v))
+                           ++insideCount;
+                    }
+
+                }
+
+                auto [alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
+                float w_reciprocal = 1.0 / (alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+                float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+                z_interpolated *= w_reciprocal;
+
+                Eigen::Vector3f point(x, y, 1.0f);
+                int ind = get_index(x, y);
+                if (depth_buf[ind] > z_interpolated && insideCount!=0) {
+                    float area = (float)insideCount / (float)(superSamplingCount * superSamplingCount);
+                    set_pixel(point, t.getColor() * area);
+                    depth_buf[ind] = z_interpolated;
+                }
+                    
+
 
             }
         }
