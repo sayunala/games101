@@ -100,7 +100,14 @@
 > 0 & 0 & 0 & 1
 > \end{array}\right]
 > $$
-> 
+>
+> $$
+> \begin{aligned}
+> \tan \frac{\operatorname{fov} Y}{2} & =\frac{t}{|n|} \\
+> \text { aspect } & =\frac{r}{t}
+> \end{aligned}
+> $$
+>
 > 进行透视变换之后再进行正交变换即可
 
 ```cpp
@@ -134,4 +141,23 @@
 ## task2 Rasterization
 
 > clip 空间到屏幕空间
+>
+>  
+> $$
+> M_{\text {viewport }}=\left(\begin{array}{cccc}
+> \frac{\text { width }}{2} & 0 & 0 & \frac{\text { width }}{} \\
+> 0 & \frac{\text { height }}{2} & 0 & \frac{\text { height }}{2} \\
+> 0 & 0 & 1 & 0 \\
+> 0 & 0 & 0 & 1
+> \end{array}\right)
+> $$
+>  
+>
+> cpp 核心代码，进行MSAA（对于采样点并没有计算其z-Buffer，最终效果仅供参考）
+>
+> ```cpp
+> 
+> ```
+>
+> 
 
