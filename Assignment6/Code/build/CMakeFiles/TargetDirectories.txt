@@ -1,0 +1,3 @@
+/home/zyb/CppCode/games101-main/games101/Assignment6/Code/build/CMakeFiles/RayTracing.dir
+/home/zyb/CppCode/games101-main/games101/Assignment6/Code/build/CMakeFiles/edit_cache.dir
+/home/zyb/CppCode/games101-main/games101/Assignment6/Code/build/CMakeFiles/rebuild_cache.dir
